@@ -1,0 +1,10 @@
+# Allow the active desktop user to monitor the Logitech G13.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c21c", TAG+="uaccess"
+SUBSYSTEM=="input", KERNEL=="event*", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c21c", TAG+="uaccess"
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"
+
+# Expose the virtual gamepad to the active desktop session. The normal input
+# rules also identify it from its capabilities; these explicit rules cover
+# distributions with older input-device policy.
+SUBSYSTEM=="input", KERNEL=="event*", ATTRS{name}=="G13 Control Center Virtual Gamepad", TAG+="uaccess"
+SUBSYSTEM=="input", KERNEL=="js*", ATTRS{name}=="G13 Control Center Virtual Gamepad", TAG+="uaccess"

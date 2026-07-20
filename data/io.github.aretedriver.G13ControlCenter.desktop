@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=G13 Control Center
+Comment=Configure Logitech G13 profiles and keyboard mappings
+Exec=g13-control-center
+Icon=input-gaming-symbolic
+Terminal=false
+Categories=Settings;HardwareSettings;
+Keywords=Logitech;G13;Gaming;Keypad;Keyboard;
+StartupNotify=true
+DBusActivatable=true

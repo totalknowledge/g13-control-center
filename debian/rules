@@ -1,0 +1,84 @@
+#!/usr/bin/make -f
+
+PACKAGE := g13-control-center
+STAGING := debian/$(PACKAGE)
+VERSION := $(shell dpkg-parsechangelog -SVersion)
+ARCH := $(shell dpkg-architecture -qDEB_HOST_ARCH)
+OUTPUT_DIR := $(if $(G13_DEB_OUTPUT_DIR),$(G13_DEB_OUTPUT_DIR),..)
+DEB_FILE := $(OUTPUT_DIR)/$(PACKAGE)_$(VERSION)_$(ARCH).deb
+SUBSTVARS := debian/$(PACKAGE).substvars
+
+export LC_ALL := C.UTF-8
+
+.PHONY: build build-arch build-indep binary binary-arch binary-indep clean
+
+build: build-arch build-indep
+
+build-arch:
+	cargo build --release --locked --offline
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	cargo test --locked --offline
+	set -e; for test_file in tests/*.test.js; do \
+		gjs -m "$$test_file"; \
+	done
+	desktop-file-validate \
+		data/io.github.aretedriver.G13ControlCenter.desktop
+	appstreamcli validate --no-net \
+		data/io.github.aretedriver.G13ControlCenter.metainfo.xml
+	udevadm verify udev/70-g13-control-center.rules
+endif
+
+build-indep:
+
+binary: binary-arch binary-indep
+
+binary-arch: build-arch
+	rm -rf $(STAGING)
+	install -d $(STAGING)/usr/share/g13-control-center
+	install -m 0644 src/*.js $(STAGING)/usr/share/g13-control-center/
+	install -D -m 0755 data/g13-control-center \
+		$(STAGING)/usr/bin/g13-control-center
+	install -D -m 0755 build/release/g13-keyboard-helper \
+		$(STAGING)/usr/libexec/g13-control-center-helper
+	strip --strip-unneeded $(STAGING)/usr/libexec/g13-control-center-helper
+	install -D -m 0644 modules-load.d/g13-control-center.conf \
+		$(STAGING)/usr/lib/modules-load.d/g13-control-center.conf
+	install -D -m 0644 udev/70-g13-control-center.rules \
+		$(STAGING)/usr/lib/udev/rules.d/70-g13-control-center.rules
+	install -D -m 0644 \
+		data/io.github.aretedriver.G13ControlCenter.desktop \
+		$(STAGING)/usr/share/applications/io.github.aretedriver.G13ControlCenter.desktop
+	install -D -m 0644 \
+		data/io.github.aretedriver.G13ControlCenter.metainfo.xml \
+		$(STAGING)/usr/share/metainfo/io.github.aretedriver.G13ControlCenter.metainfo.xml
+	install -D -m 0644 \
+		data/dbus/io.github.aretedriver.G13ControlCenter.service \
+		$(STAGING)/usr/share/dbus-1/services/io.github.aretedriver.G13ControlCenter.service
+	install -D -m 0644 data/systemd/g13-control-center.service \
+		$(STAGING)/usr/lib/systemd/user/g13-control-center.service
+	install -D -m 0644 README.md \
+		$(STAGING)/usr/share/doc/$(PACKAGE)/README.md
+	install -m 0644 debian/copyright \
+		$(STAGING)/usr/share/doc/$(PACKAGE)/copyright
+	gzip -9 -c debian/changelog > \
+		$(STAGING)/usr/share/doc/$(PACKAGE)/changelog.Debian.gz
+	install -d $(STAGING)/DEBIAN
+	dpkg-shlibdeps -T$(SUBSTVARS) \
+		$(STAGING)/usr/libexec/g13-control-center-helper
+	dpkg-gencontrol -p$(PACKAGE) -P$(STAGING) -T$(SUBSTVARS)
+	install -m 0755 debian/postinst $(STAGING)/DEBIAN/postinst
+	install -m 0755 debian/postrm $(STAGING)/DEBIAN/postrm
+	cd $(STAGING) && find usr -type f -print0 | sort -z | \
+		xargs -0 md5sum > DEBIAN/md5sums
+	find $(STAGING) -type d -exec chmod 0755 {} +
+	chmod 0644 $(STAGING)/DEBIAN/md5sums \
+		$(STAGING)/usr/share/doc/$(PACKAGE)/changelog.Debian.gz
+	install -d $(OUTPUT_DIR)
+	rm -f $(DEB_FILE)
+	dpkg-deb --root-owner-group --build $(STAGING) $(DEB_FILE)
+
+binary-indep:
+
+clean:
+	rm -rf $(STAGING)
+	rm -f debian/files $(SUBSTVARS)

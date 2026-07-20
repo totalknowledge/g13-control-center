@@ -1,0 +1,9 @@
+[Unit]
+Description=G13 Control Center
+Documentation=file:/usr/share/doc/g13-control-center/README.md
+
+[Service]
+Type=dbus
+BusName=io.github.aretedriver.G13ControlCenter
+ExecStart=/usr/bin/g13-control-center
+Restart=on-failure

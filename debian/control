@@ -1,0 +1,30 @@
+Source: g13-control-center
+Section: utils
+Priority: optional
+Maintainer: Bryan Patrick Coleman <totalknowledge@gmail.com>
+Build-Depends:
+ appstream,
+ cargo,
+ desktop-file-utils,
+ dpkg-dev,
+ gir1.2-adw-1,
+ gir1.2-gtk-4.0,
+ gjs,
+ rustc (>= 1.70),
+ udev
+Standards-Version: 4.7.4
+Rules-Requires-Root: no
+
+Package: g13-control-center
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ gir1.2-adw-1,
+ gir1.2-gtk-4.0,
+ gjs,
+ kmod,
+ udev
+Description: control center for the Logitech G13 gaming keypad
+ Configure three independent Logitech G13 mapping profiles, monitor the
+ keypad and thumbstick, and emit mapped controls through a system-wide Linux
+ virtual keyboard and gamepad that work with GNOME, X11, Wayland, and games.

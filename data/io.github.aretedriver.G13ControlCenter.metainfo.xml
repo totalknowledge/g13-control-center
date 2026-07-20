@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.aretedriver.G13ControlCenter</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>G13 Control Center</name>
+  <summary>Configure Logitech G13 profiles and keyboard mappings</summary>
+  <developer id="io.github.aretedriver">
+    <name>G13 Control Center Developers</name>
+  </developer>
+  <url type="homepage">
+    https://github.com/aretedriver/g13-control-center
+  </url>
+  <description>
+    <p>
+      G13 Control Center detects the Logitech G13 keypad and thumbstick,
+      displays live input, and maps its programmable controls to system-wide
+      keyboard events, and controls the HUD backlight.
+    </p>
+    <p>
+      Three independent M1, M2, and M3 profiles are supported. Mapped keys
+      work through the normal Linux input stack in GNOME, X11, Wayland, and
+      games while the application is running. The thumbstick can operate as
+      an analog gamepad or send WASD or arrow keys.
+    </p>
+  </description>
+  <launchable type="desktop-id">
+    io.github.aretedriver.G13ControlCenter.desktop
+  </launchable>
+  <icon type="stock">input-gaming-symbolic</icon>
+  <categories>
+    <category>Settings</category>
+    <category>HardwareSettings</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.3" date="2026-07-20">
+      <description>
+        <p>Keeps device handling active in the system tray, prevents duplicate windows, displays the version, and adds automated tests and release builds.</p>
+      </description>
+    </release>
+    <release version="0.1.2" date="2026-07-20">
+      <description>
+        <p>Adds left/right analog-stick selection, prevents duplicate physical joystick input, and updates the HUD color picker.</p>
+      </description>
+    </release>
+    <release version="0.1.1" date="2026-07-20">
+      <description>
+        <p>Adds gamepad and keyboard thumbstick modes plus HUD color and brightness controls.</p>
+      </description>
+    </release>
+    <release version="0.1.0" date="2026-07-19">
+      <description>
+        <p>Initial Debian package with automatic Linux input integration.</p>
+      </description>
+    </release>
+  </releases>
+</component>

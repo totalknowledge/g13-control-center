@@ -1,0 +1,45 @@
+# Rust and native build output
+/target/
+/build/
+*.profraw
+
+# Debian packaging output
+/dist/
+/debian/.debhelper/
+/debian/debhelper-build-stamp
+/debian/g13-control-center/
+/debian/files
+/debian/*.debhelper
+/debian/*.debhelper.log
+/debian/*.substvars
+/*.build
+/*.buildinfo
+/*.changes
+/*.deb
+
+# Test and coverage output
+/coverage/
+*.lcov
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Editors and IDEs
+/.vscode/
+/.idea/
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# Codex/agent workspace state
+/.codex/
+/.agents/
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+

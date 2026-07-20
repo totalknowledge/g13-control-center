@@ -1,0 +1,32 @@
+g13-control-center (0.1.3) unstable; urgency=medium
+
+  * Keep the controller active in the system tray when its window is closed.
+  * Reuse the existing window when the application is activated again.
+  * Display the application version and add automated test and package builds.
+  * License the project under the MIT License.
+
+ -- Bryan Patrick Coleman <totalknowledge@gmail.com>  Mon, 20 Jul 2026 12:30:00 -0400
+
+g13-control-center (0.1.2) unstable; urgency=medium
+
+  * Add a persistent left-stick or right-stick gamepad selector.
+  * Exclusively capture the physical G13 thumbstick to prevent duplicate game input.
+  * Replace the deprecated GTK color-button API.
+
+ -- Bryan Patrick Coleman <totalknowledge@gmail.com>  Mon, 20 Jul 2026 10:55:00 -0400
+
+g13-control-center (0.1.1) unstable; urgency=medium
+
+  * Add analog virtual-gamepad, WASD, and arrow-key thumbstick modes.
+  * Add persistent G13 HUD color and brightness controls.
+  * Load joydev for compatibility with games using legacy joystick devices.
+
+ -- Bryan Patrick Coleman <totalknowledge@gmail.com>  Mon, 20 Jul 2026 12:00:00 -0400
+
+g13-control-center (0.1.0) unstable; urgency=medium
+
+  * Initial native Debian package.
+  * Install the uinput module and udev integration automatically.
+  * Install the GJS application, Rust helper, and desktop metadata.
+
+ -- Bryan Patrick Coleman <totalknowledge@gmail.com>  Sun, 19 Jul 2026 22:30:00 -0400

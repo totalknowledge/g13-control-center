@@ -1,0 +1,98 @@
+name: Builds
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  debian-package:
+    name: Debian package (${{ matrix.architecture }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: amd64
+            runner: ubuntu-24.04
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            appstream \
+            cargo \
+            desktop-file-utils \
+            dpkg-dev \
+            gir1.2-adw-1 \
+            gir1.2-gtk-4.0 \
+            gjs \
+            rustc \
+            udev
+
+      - name: Build Debian package
+        run: ./packaging/build-deb.sh
+
+      - name: Upload Debian package
+        uses: actions/upload-artifact@v4
+        with:
+          name: g13-control-center-0.1.3-${{ matrix.architecture }}
+          path: dist/g13-control-center_0.1.3_${{ matrix.architecture }}.deb
+          if-no-files-found: error
+
+  source-archive:
+    name: Source archive
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build source archive
+        run: |
+          mkdir -p dist
+          git archive \
+            --format=tar.gz \
+            --prefix=g13-control-center-0.1.3/ \
+            --output=dist/g13-control-center-0.1.3.tar.gz \
+            HEAD
+
+      - name: Upload source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: g13-control-center-0.1.3-source
+          path: dist/g13-control-center-0.1.3.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: Publish tagged release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - debian-package
+      - source-archive
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: Create release and upload downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --generate-notes
+          gh release upload "$GITHUB_REF_NAME" release/* --clobber
+

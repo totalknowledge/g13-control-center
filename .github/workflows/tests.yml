@@ -1,0 +1,57 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            appstream \
+            cargo \
+            clippy \
+            desktop-file-utils \
+            gir1.2-adw-1 \
+            gir1.2-gtk-4.0 \
+            gjs \
+            rustc \
+            rustfmt \
+            udev
+
+      - name: Check Rust formatting
+        run: cargo fmt --all -- --check
+
+      - name: Lint Rust helper
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Test Rust helper
+        run: cargo test --workspace --locked
+
+      - name: Test GJS and enforce 80% coverage
+        run: ./tests/run-coverage.sh
+
+      - name: Validate desktop integration files
+        run: |
+          desktop-file-validate data/io.github.aretedriver.G13ControlCenter.desktop
+          appstreamcli validate --no-net data/io.github.aretedriver.G13ControlCenter.metainfo.xml
+          udevadm verify udev/70-g13-control-center.rules
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gjs-coverage
+          path: build/coverage/coverage.lcov
+          if-no-files-found: warn
