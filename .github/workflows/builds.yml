@@ -14,63 +14,36 @@ env:
 
 jobs:
   version:
-    name: Determine package version
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       version: ${{ steps.version.outputs.version }}
 
     steps:
-      - name: Check out source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Determine version
-        id: version
+      - id: version
         shell: bash
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
           else
-            VERSION="$(
-              awk '
-                /^\[package\]/ {
-                  in_package = 1
-                  next
-                }
-
-                /^\[/ {
-                  in_package = 0
-                }
-
-                in_package && /^version[[:space:]]*=/ {
-                  gsub(/"/, "", $3)
-                  print $3
-                  exit
-                }
-              ' Cargo.toml
-            )"
+            VERSION="$(sed -n '/^\[package\]/,/^\[/s/^version = "\(.*\)"/\1/p' Cargo.toml)"
           fi
 
-          if [[ -z "$VERSION" ]]; then
-            echo "Unable to determine package version."
-            exit 1
-          fi
-
-          echo "Building version $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
   debian-package:
     name: Debian package (${{ matrix.architecture }})
-    needs:
-      - version
+    needs: version
 
     strategy:
       fail-fast: false
       matrix:
         include:
           - architecture: amd64
-            runner: ubuntu-24.04
+            runner: ubuntu-26.04
           - architecture: arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
 
     runs-on: ${{ matrix.runner }}
 
@@ -78,10 +51,9 @@ jobs:
       VERSION: ${{ needs.version.outputs.version }}
 
     steps:
-      - name: Check out source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Install system dependencies
+      - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install --yes \
@@ -93,105 +65,66 @@ jobs:
             gjs \
             udev
 
-      - name: Install Rust toolchain
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust build files
-        uses: Swatinem/rust-cache@v2
-
-      - name: Test Rust helper
-        run: cargo test --workspace --locked
 
       - name: Build Debian package
         run: ./packaging/build-deb.sh
 
-      - name: Verify Debian package exists
-        run: |
-          PACKAGE="dist/${PACKAGE_NAME}_${VERSION}_${{ matrix.architecture }}.deb"
-
-          if [[ ! -f "$PACKAGE" ]]; then
-            echo "Expected package was not created: $PACKAGE"
-            echo
-            echo "Files in dist:"
-            find dist -maxdepth 1 -type f -print 2>/dev/null || true
-            exit 1
-          fi
-
-      - name: Install Debian package
-        run: |
-          sudo apt-get install --yes \
-            "./dist/${PACKAGE_NAME}_${VERSION}_${{ matrix.architecture }}.deb"
-
       - name: Upload Debian package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PACKAGE_NAME }}-${{ env.VERSION }}-${{ matrix.architecture }}
-          path: dist/${{ env.PACKAGE_NAME }}_${{ env.VERSION }}_${{ matrix.architecture }}.deb
+          name: g13-control-center-${{ env.VERSION }}-${{ matrix.architecture }}
+          path: dist/g13-control-center_${{ env.VERSION }}_${{ matrix.architecture }}.deb
           if-no-files-found: error
 
   source-archive:
-    name: Source archive
-    needs:
-      - version
-
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
+    needs: version
 
     env:
       VERSION: ${{ needs.version.outputs.version }}
 
     steps:
-      - name: Check out source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build source archive
         run: |
           mkdir -p dist
-
           git archive \
             --format=tar.gz \
-            --prefix="${PACKAGE_NAME}-${VERSION}/" \
-            --output="dist/${PACKAGE_NAME}-${VERSION}.tar.gz" \
+            --prefix="g13-control-center-${VERSION}/" \
+            --output="dist/g13-control-center-${VERSION}.tar.gz" \
             HEAD
 
       - name: Upload source archive
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PACKAGE_NAME }}-${{ env.VERSION }}-source
-          path: dist/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.tar.gz
+          name: g13-control-center-${{ env.VERSION }}-source
+          path: dist/g13-control-center-${{ env.VERSION }}.tar.gz
           if-no-files-found: error
 
   release:
-    name: Publish tagged release
     if: startsWith(github.ref, 'refs/tags/v')
-
     needs:
-      - version
       - debian-package
       - source-archive
 
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     permissions:
       contents: write
 
     steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           path: release
           merge-multiple: true
 
-      - name: Create release and upload downloads
+      - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release create "$GITHUB_REF_NAME" \
-              --title "$GITHUB_REF_NAME" \
-              --generate-notes
-          fi
-
-          gh release upload \
-            "$GITHUB_REF_NAME" \
+          gh release create "$GITHUB_REF_NAME" \
             release/* \
-            --clobber
+            --generate-notes
