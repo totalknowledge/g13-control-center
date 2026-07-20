@@ -1,8 +1,8 @@
 # G13 Control Center
 
-[![Tests](https://github.com/aretedriver/g13-control-center/actions/workflows/tests.yml/badge.svg)](https://github.com/aretedriver/g13-control-center/actions/workflows/tests.yml)
-[![Builds](https://github.com/aretedriver/g13-control-center/actions/workflows/builds.yml/badge.svg)](https://github.com/aretedriver/g13-control-center/actions/workflows/builds.yml)
-[![Downloads](https://img.shields.io/github/downloads/aretedriver/g13-control-center/total)](https://github.com/aretedriver/g13-control-center/releases)
+[![Tests](https://github.com/totalknowledge/g13-control-center/actions/workflows/tests.yml/badge.svg)](https://github.com/totalknowledge/g13-control-center/actions/workflows/tests.yml)
+[![Builds](https://github.com/totalknowledge/g13-control-center/actions/workflows/builds.yml/badge.svg)](https://github.com/totalknowledge/g13-control-center/actions/workflows/builds.yml)
+[![Downloads](https://img.shields.io/github/downloads/totalknowledge/g13-control-center/total)](https://github.com/totalknowledge/g13-control-center/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A native GNOME application for configuring the Logitech G13. The interface is written in
